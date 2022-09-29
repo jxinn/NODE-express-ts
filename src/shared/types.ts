@@ -30,13 +30,20 @@ export interface ICoreRes {
   message?: string;
 }
 
-export interface IAddUserReq {
-  name: string;
-  email: string;
-  pasword: string;
+export enum UserRoles {
+  Standard,
+  Admin,
 }
 
-export interface ILoginReq {
+export interface IUser {
+  id: number;
+  name: string;
   email: string;
-  password: string;
+  password?: string;
+  role?: UserRoles;
+}
+
+export type TCreateUserInput = Pick<IUser, "name" | "email" | "password">;
+export interface ICreateUserOutput extends ICoreRes {
+  id?: number;
 }

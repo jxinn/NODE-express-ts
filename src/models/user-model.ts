@@ -1,77 +1,27 @@
-import { TAll } from '@shared/types';
-
-
-// **** Variables **** //
-
-export enum UserRoles {
-  Standard,
-  Admin,
-}
-
-
-// **** Types **** //
-
-export interface IUser {
-  id: number;
-  name: string;
-  email: string;
-  pwdHash?: string;
-  role?: UserRoles;
-}
-
-
-// **** Functions **** //
+import { TCreateUserInput } from "@shared/types";
+import mysql from "@models/mysql";
 
 /**
- * Get a new User object.
+ * Create user.
  */
-function _new(
-  name: string,
-  email: string,
-  role?: UserRoles,
-  pwdHash?: string,
-): IUser {
-  return {
-    id: -1,
-    email,
-    name,
-    role: (role ?? UserRoles.Standard),
-    pwdHash: (pwdHash ?? ''),
-  };
-}
+async function createUser(user: TCreateUserInput): Promise<number | null> {
+  const [result] = await mysql
+    .pool()
+    .execute("INSERT INTO `user` (name, email, password) VALUES (?, ?, ?)", [
+      user.name,
+      user.email,
+      user.password,
+    ]);
 
-/**
- * Copy a user object.
- */
-function copy(user: IUser): IUser {
-  return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    pwdHash: user.pwdHash,
-  };
-}
+  if ("insertId" in result) {
+    return result.insertId;
+  }
 
-/**
- * See if an object is an instance of User.
- */
-function instanceOf(arg: TAll): boolean {
-  return (
-    !!arg &&
-    typeof arg === 'object' &&
-    'id' in arg &&
-    'email' in arg &&
-    'name' in arg &&
-    'role' in arg
-  );
+  return null;
 }
-
 
 // **** Export default **** //
 
 export default {
-  new: _new,
-  copy,
-  instanceOf,
+  createUser,
 } as const;

@@ -14,8 +14,8 @@ const apiRouter = Router();
 const authRouter = Router();
 
 // Create user
-authRouter.post(authRoutes.paths.add, authRoutes.add);
-
+authRouter.post(authRoutes.paths.create, authRoutes.createUser);
+/* 
 // Login user
 authRouter.post(
   authRoutes.paths.login,
@@ -56,9 +56,9 @@ userRouter.delete(
   validate(["id", "number", "params"]),
   userRoutes.delete
 );
-
+*/
 // Add userRouter
-apiRouter.use(userRoutes.paths.basePath, adminMw, userRouter);
+// apiRouter.use(userRoutes.paths.basePath, adminMw, userRouter);
 
 // **** Export default **** //
 

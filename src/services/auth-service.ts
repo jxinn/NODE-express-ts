@@ -1,24 +1,26 @@
 import bcrypt from "bcrypt";
 
-import userRepo from "@repos/user-repo";
-import mysql from "@repos/mysql";
 import jwtUtil from "@util/jwt-util";
 import { UnauthorizedError } from "@shared/errors";
-import { ICoreRes } from "@shared/types";
+import { TCreateUserInput, ICreateUserOutput } from "@shared/types";
+import userModel from "@models/user-model";
 
 // **** Functions **** //
 
-async function createUser(): Promise<ICoreRes> {
+async function createUser(user: TCreateUserInput): Promise<ICreateUserOutput> {
   try {
-    const [result] = await mysql
-      .pool()
-      .execute("SELECT * FROM `data` LIMIT 10");
-    console.log(result);
+    const reuslt = await userModel.createUser(user);
+    if (!reuslt) {
+      return {
+        result: false,
+      };
+    }
+
     return {
       result: true,
+      id: reuslt,
     };
   } catch (error) {
-    console.log("👿", error);
     return {
       result: false,
       message: "Could not create user",
@@ -28,7 +30,7 @@ async function createUser(): Promise<ICoreRes> {
 
 /**
  * Login a user.
- */
+
 async function getJwt(email: string, password: string): Promise<string> {
   // Fetch user
   const user = await userRepo.getOne(email);
@@ -48,11 +50,11 @@ async function getJwt(email: string, password: string): Promise<string> {
     name: user.name,
     role: user.role,
   });
-}
+} */
 
 // **** Export default **** //
 
 export default {
   createUser,
-  getJwt,
+  //getJwt,
 } as const;

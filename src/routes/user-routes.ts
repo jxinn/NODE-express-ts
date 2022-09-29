@@ -1,9 +1,8 @@
-import StatusCodes from 'http-status-codes';
+import StatusCodes from "http-status-codes";
 
-import userService from '@services/user-service';
-import { IUser } from '@models/user-model';
-import { IReq, IRes } from '@shared/types';
-
+//import userService from '@services/user-service';
+import { IUser } from "@models/user-model";
+import { IReq, IRes } from "@shared/types";
 
 // **** Variables **** //
 
@@ -12,13 +11,12 @@ const { CREATED, OK } = StatusCodes;
 
 // Paths
 const paths = {
-  basePath: '/users',
-  get: '/all',
-  add: '/add',
-  update: '/update',
-  delete: '/delete/:id',
+  basePath: "/users",
+  get: "/all",
+  add: "/add",
+  update: "/update",
+  delete: "/delete/:id",
 } as const;
-
 
 // **** Functions **** //
 
@@ -33,7 +31,7 @@ async function getAll(_: IReq, res: IRes) {
 /**
  * Add one user.
  */
-async function add(req: IReq<{user: IUser}>, res: IRes) {
+async function add(req: IReq<{ user: IUser }>, res: IRes) {
   const { user } = req.body;
   await userService.addOne(user);
   return res.status(CREATED).end();
@@ -42,7 +40,7 @@ async function add(req: IReq<{user: IUser}>, res: IRes) {
 /**
  * Update one user.
  */
-async function update(req: IReq<{user: IUser}>, res: IRes) {
+async function update(req: IReq<{ user: IUser }>, res: IRes) {
   const { user } = req.body;
   await userService.updateOne(user);
   return res.status(OK).end();
@@ -56,7 +54,6 @@ async function _delete(req: IReq, res: IRes) {
   await userService.delete(id);
   return res.status(OK).end();
 }
-
 
 // **** Export default **** //
 

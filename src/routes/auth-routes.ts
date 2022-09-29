@@ -4,7 +4,7 @@ import authService from "@services/auth-service";
 import envVars from "@shared/env-vars";
 import { IReq, IRes } from "@shared/types";
 import { validationResult, check } from "express-validator";
-import { IAddUserReq, ILoginReq } from "@shared/types";
+import { TCreateUserInput } from "@shared/types";
 
 // **** Variables **** //
 
@@ -14,7 +14,7 @@ const { OK, BAD_REQUEST, CREATED } = StatusCodes;
 // Paths
 const paths = {
   basePath: "/auth",
-  add: "/add",
+  create: "/create",
   login: "/login",
   logout: "/logout",
 } as const;
@@ -22,9 +22,9 @@ const paths = {
 // **** Functions **** //
 
 /**
- * Add user.
+ * Create user.
  */
-async function add(req: IReq<IAddUserReq>, res: IRes) {
+async function createUser(req: IReq<TCreateUserInput>, res: IRes) {
   await check("name", "The name must be 5+ chars long and contain a number")
     .not()
     .isIn(["123", "password", "god"])
@@ -39,14 +39,14 @@ async function add(req: IReq<IAddUserReq>, res: IRes) {
     return res.status(BAD_REQUEST).json(error);
   }
 
-  const result = await authService.createUser();
+  const result = await authService.createUser(req.body);
 
   return res.status(CREATED).json(result);
 }
 
 /**
  * Login a user.
- */
+
 async function login(req: IReq<ILoginReq>, res: IRes) {
   const { email, password } = req.body;
   // Add jwt to cookie
@@ -55,7 +55,7 @@ async function login(req: IReq<ILoginReq>, res: IRes) {
   res.cookie(key, jwt, options);
   // Return
   return res.status(OK).end();
-}
+} */
 
 /**
  * Logout the user.
@@ -70,7 +70,7 @@ function logout(_: IReq, res: IRes) {
 
 export default {
   paths,
-  add,
-  login,
+  createUser,
+  //login,
   logout,
 } as const;
