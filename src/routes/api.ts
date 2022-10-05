@@ -15,6 +15,10 @@ const authRouter = Router();
 
 // Create user
 authRouter.post(authRoutes.paths.create, authRoutes.createUser);
+
+// Add authRouter
+apiRouter.use(authRoutes.paths.basePath, authRouter);
+
 /* 
 // Login user
 authRouter.post(
@@ -26,8 +30,6 @@ authRouter.post(
 // Logout user
 authRouter.get(authRoutes.paths.logout, authRoutes.logout);
 
-// Add authRouter
-apiRouter.use(authRoutes.paths.basePath, authRouter);
 
 // **** Setup user routes **** //
 

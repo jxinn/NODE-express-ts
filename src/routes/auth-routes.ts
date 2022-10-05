@@ -1,20 +1,17 @@
 import StatusCodes from "http-status-codes";
 
 import authService from "@services/auth-service";
-import envVars from "@shared/env-vars";
-import { IReq, IRes } from "@shared/types";
-import { validationResult, check } from "express-validator";
-import { TCreateUserInput } from "@shared/types";
+import envVars from "src/shared/env-vars";
+import { TCreateUserReq, IReq, IRes, TCreateUserRes } from "@shared/types";
+import { validationResult, body, CustomValidator } from "express-validator";
+import { CODES, CustomError } from "@shared/errors";
 
 // **** Variables **** //
-
-// Status codes
-const { OK, BAD_REQUEST, CREATED } = StatusCodes;
 
 // Paths
 const paths = {
   basePath: "/auth",
-  create: "/create",
+  create: "/createUser",
   login: "/login",
   logout: "/logout",
 } as const;
@@ -22,31 +19,53 @@ const paths = {
 // **** Functions **** //
 
 /**
- * Create user.
+ * Create an account.
  */
-async function createUser(req: IReq<TCreateUserInput>, res: IRes) {
-  await check("name", "The name must be 5+ chars long and contain a number")
-    .not()
-    .isIn(["123", "password", "god"])
-    .withMessage("Do not use a common word as the password")
-    .isLength({ min: 5 })
+async function createUser(req: IReq<TCreateUserReq>, res: IRes) {
+  await body("name")
+    .isLength({ min: 3 })
+    .withMessage("이름은 최소 3글자 이상 입력해 주세요")
     .run(req);
-  await check("password").isLength({ min: 6 }).run(req);
+  await body("email")
+    .isEmail()
+    .withMessage("이메일을 확인해 주세요")
+    .custom(async (value) => {
+      //const user = await authService.userDetail(req.body);
+      return true;
+    })
+    .withMessage("이미 존재하는 이메일입니다.")
+    .run(req);
+  await body("password")
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{8,}/
+    )
+    .withMessage(
+      "비밀번호는 대문자, 소문자, 숫자, 특수문자를 혼합하여 최소 8자리 이상으로 입력해 주세요"
+    )
+    .run(req);
 
   const validation = validationResult(req);
   if (!validation.isEmpty()) {
     const [error] = validation.array({ onlyFirstError: false });
-    return res.status(BAD_REQUEST).json(error);
+    throw new CustomError(StatusCodes.BAD_REQUEST, "TP_1000", error);
   }
 
-  const result = await authService.createUser(req.body);
+  const tt = await authService.userDetail(req.body);
+  return res.status(StatusCodes.CREATED).json(tt);
 
-  return res.status(CREATED).json(result);
+  const userId = await authService.createUser(req.body);
+
+  return res.status(StatusCodes.CREATED).json({
+    result: true,
+    code: "TP_0000",
+    message: CODES.TP_0000,
+    id: userId,
+  } as TCreateUserRes);
 }
 
 /**
  * Login a user.
-
+ 
 async function login(req: IReq<ILoginReq>, res: IRes) {
   const { email, password } = req.body;
   // Add jwt to cookie
@@ -55,7 +74,8 @@ async function login(req: IReq<ILoginReq>, res: IRes) {
   res.cookie(key, jwt, options);
   // Return
   return res.status(OK).end();
-} */
+}
+*/
 
 /**
  * Logout the user.
@@ -63,7 +83,7 @@ async function login(req: IReq<ILoginReq>, res: IRes) {
 function logout(_: IReq, res: IRes) {
   const { key, options } = envVars.cookieProps;
   res.clearCookie(key, options);
-  return res.status(OK).end();
+  return res.status(StatusCodes.OK).end();
 }
 
 // **** Export default **** //
@@ -71,6 +91,5 @@ function logout(_: IReq, res: IRes) {
 export default {
   paths,
   createUser,
-  //login,
   logout,
 } as const;

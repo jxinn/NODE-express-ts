@@ -9,7 +9,7 @@ import "express-async-errors";
 
 import BaseRouter from "./routes/api";
 import logger from "jet-logger";
-import { CustomError } from "@shared/errors";
+import { CODES, CustomError } from "@shared/errors";
 import envVars from "@shared/env-vars";
 
 // **** Init express **** //
@@ -38,6 +38,7 @@ if (envVars.nodeEnv === "production") {
 app.use("/api", BaseRouter);
 
 // Setup error handler
+
 app.use(
   (
     err: Error | CustomError,
@@ -47,13 +48,21 @@ app.use(
     __: NextFunction
   ) => {
     logger.err(err, true);
-    // Status
-    const status =
-      err instanceof CustomError ? err.HttpStatus : StatusCodes.BAD_REQUEST;
     // Return
-    return res.status(status).json({
-      error: err.message,
-    });
+    if (err instanceof CustomError) {
+      return res.status(err.HttpStatus).json({
+        result: false,
+        code: err.Code,
+        message: err.message,
+        ...err.Add,
+      });
+    } else {
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        result: false,
+        code: "TP_9999",
+        message: CODES.TP_9999,
+      });
+    }
   }
 );
 

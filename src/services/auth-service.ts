@@ -1,35 +1,51 @@
 import bcrypt from "bcrypt";
 
 import jwtUtil from "@util/jwt-util";
-import { UnauthorizedError } from "@shared/errors";
-import { TCreateUserInput, ICreateUserOutput } from "@shared/types";
 import userModel from "@models/user-model";
-
+import { TCreateUserReq, IUser } from "@shared/types";
+import { CustomError } from "@shared/errors";
+import { StatusCodes } from "http-status-codes";
 // **** Functions **** //
 
-async function createUser(user: TCreateUserInput): Promise<ICreateUserOutput> {
+/**
+ * Create user.
+ */
+async function createUser(userReq: TCreateUserReq): Promise<number | null> {
   try {
-    const reuslt = await userModel.createUser(user);
-    if (!reuslt) {
-      return {
-        result: false,
-      };
-    }
-
-    return {
-      result: true,
-      id: reuslt,
-    };
+    userReq.password = await bcrypt.hash(userReq.password, 10);
   } catch (error) {
-    return {
-      result: false,
-      message: "Could not create user",
-    };
+    throw new CustomError(StatusCodes.BAD_REQUEST, "TP_1002");
   }
+
+  const userId = await userModel.createUser(userReq);
+
+  if (!userId) {
+    throw new CustomError(StatusCodes.BAD_REQUEST, "TP_1001");
+  }
+
+  return userId;
+}
+
+/**
+ * Select user detail.
+ */
+async function userDetail(userReq: TCreateUserReq): Promise<IUser> {
+  const user = await userModel.userDetail(userReq.email);
+
+  if (!user) {
+    throw new CustomError(StatusCodes.BAD_REQUEST, "TP_1003");
+  }
+
+  return user;
+}
+
+async function existUser(email: string) {
+  const user = await userModel.userDetail(email);
 }
 
 /**
  * Login a user.
+
 
 async function getJwt(email: string, password: string): Promise<string> {
   // Fetch user
@@ -38,7 +54,7 @@ async function getJwt(email: string, password: string): Promise<string> {
     throw new UnauthorizedError();
   }
   // Check password
-  const hash = user.pwdHash ?? "";
+  const hash = user.password ?? "";
   const pwdPassed = await bcrypt.compare(password, hash);
   if (!pwdPassed) {
     throw new UnauthorizedError();
@@ -50,11 +66,12 @@ async function getJwt(email: string, password: string): Promise<string> {
     name: user.name,
     role: user.role,
   });
-} */
+}
+ */
 
 // **** Export default **** //
 
 export default {
   createUser,
-  //getJwt,
+  userDetail,
 } as const;
