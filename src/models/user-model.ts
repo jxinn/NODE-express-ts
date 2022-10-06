@@ -15,12 +15,11 @@ import { ResultSetHeader } from "mysql2/promise";
  * Create user.
  */
 async function createUser(user: TCreateUserReq): Promise<number> {
-  const [result] = await mysql
-    .pool()
-    .execute<ResultSetHeader>(
-      "INSERT INTO `ck_test` (`name`, `email`, `password`) VALUES (?, ?, ?)",
-      [user.name, user.email, user.password]
-    );
+  const [result] = await mysql.pool().execute<ResultSetHeader>(
+    `INSERT INTO ck_test (name, email, password) VALUES 
+    (:name, :email, :password)`,
+    user
+  );
 
   return result.insertId;
 }
@@ -34,29 +33,25 @@ async function userDetail(
   col = "*"
 ): Promise<TUser | null> {
   let sql = "";
-  let values: any | any[];
 
   switch (data.case) {
     case eSELECT_USER.BY_ID:
-      sql = `SELECT ${col} FROM ck_test WHERE id = ? `;
-      values = [data.id];
+      sql = `SELECT ${col} FROM ck_test WHERE id = :id `;
       break;
 
     case eSELECT_USER.BY_EMAIL:
-      sql = `SELECT ${col} FROM ck_test WHERE email = ? `;
-      values = [data.email];
+      sql = `SELECT ${col} FROM ck_test WHERE email = :email `;
       break;
 
     case eSELECT_USER.BY_NAME_EMAIL:
-      sql = `SELECT ${col} FROM ck_test WHERE name = ? AND email = ?`;
-      values = [data.name, data.email];
+      sql = `SELECT ${col} FROM ck_test WHERE name = :name AND email = :email`;
       break;
 
     default:
       return null;
   }
 
-  const [result] = await mysql.pool().execute<TUser[]>(sql, values);
+  const [result] = await mysql.pool().execute<TUser[]>(sql, data);
 
   return result[0];
 }

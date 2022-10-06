@@ -12,6 +12,7 @@ const createPool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 50,
   queueLimit: 0,
+  namedPlaceholders: true,
 });
 
 // **** Functions **** //
