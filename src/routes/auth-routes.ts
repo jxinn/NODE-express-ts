@@ -29,9 +29,9 @@ async function createUser(req: IReq<TCreateUserReq>, res: IRes) {
   await body("email")
     .isEmail()
     .withMessage("이메일을 확인해 주세요")
-    .custom(async (value) => {
-      //const user = await authService.userDetail(req.body);
-      return true;
+    .custom(async (value: string) => {
+      const exists = await authService.checkEmail(value);
+      if (exists) return Promise.reject();
     })
     .withMessage("이미 존재하는 이메일입니다.")
     .run(req);
@@ -49,9 +49,6 @@ async function createUser(req: IReq<TCreateUserReq>, res: IRes) {
     const [error] = validation.array({ onlyFirstError: false });
     throw new CustomError(StatusCodes.BAD_REQUEST, "TP_1000", error);
   }
-
-  const tt = await authService.userDetail(req.body);
-  return res.status(StatusCodes.CREATED).json(tt);
 
   const userId = await authService.createUser(req.body);
 

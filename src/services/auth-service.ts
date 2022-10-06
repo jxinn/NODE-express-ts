@@ -2,9 +2,10 @@ import bcrypt from "bcrypt";
 
 import jwtUtil from "@util/jwt-util";
 import userModel from "@models/user-model";
-import { TCreateUserReq, IUser } from "@shared/types";
+import { eSELECT_USER, TCreateUserReq, TUser } from "@shared/types";
 import { CustomError } from "@shared/errors";
 import { StatusCodes } from "http-status-codes";
+
 // **** Functions **** //
 
 /**
@@ -27,20 +28,15 @@ async function createUser(userReq: TCreateUserReq): Promise<number | null> {
 }
 
 /**
- * Select user detail.
+ * Check the presence of a user.
  */
-async function userDetail(userReq: TCreateUserReq): Promise<IUser> {
-  const user = await userModel.userDetail(userReq.email);
+async function checkEmail(email: string): Promise<boolean> {
+  const user = await userModel.userDetail({
+    case: eSELECT_USER.BY_EMAIL,
+    email,
+  });
 
-  if (!user) {
-    throw new CustomError(StatusCodes.BAD_REQUEST, "TP_1003");
-  }
-
-  return user;
-}
-
-async function existUser(email: string) {
-  const user = await userModel.userDetail(email);
+  return Boolean(user);
 }
 
 /**
@@ -73,5 +69,5 @@ async function getJwt(email: string, password: string): Promise<string> {
 
 export default {
   createUser,
-  userDetail,
+  checkEmail,
 } as const;

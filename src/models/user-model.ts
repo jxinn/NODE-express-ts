@@ -1,81 +1,62 @@
-import { TCreateUserReq, TUpdateUserReq, IUser } from "@shared/types";
+import {
+  eSELECT_USER,
+  TCreateUserReq,
+  TSelectUserByEmail,
+  TSelectUserById,
+  TSelectUserByNameEmail,
+  TUser,
+} from "@shared/types";
 import mysql from "@models/mysql";
-import type { FieldPacket, RowDataPacket } from "mysql2";
+import { ResultSetHeader } from "mysql2/promise";
 
 // **** Functions **** //
 
 /**
  * Create user.
  */
-async function createUser(user: TCreateUserReq): Promise<number | null> {
+async function createUser(user: TCreateUserReq): Promise<number> {
   const [result] = await mysql
     .pool()
-    .execute(
+    .execute<ResultSetHeader>(
       "INSERT INTO `ck_test` (`name`, `email`, `password`) VALUES (?, ?, ?)",
       [user.name, user.email, user.password]
     );
 
-  if ("insertId" in result) {
-    return result.insertId;
-  }
-
-  return null;
-}
-
-/**
- * Update user.
- */
-async function updateUser(user: TUpdateUserReq): Promise<number | null> {
-  const [result] = await mysql
-    .pool()
-    .execute("UPDATE `ck_test` SET `uri` = ? WHERE `id` = ? ", [
-      user.name,
-      user.id,
-    ]);
-
-  console.log(result);
-  return null;
-}
-
-/**
- * Delete user.
- */
-async function deleteUser(user: TUpdateUserReq): Promise<number | null> {
-  const [result] = await mysql
-    .pool()
-    .execute("UPDATE `ck_test` SET `uri` = ? WHERE `id` = ? ", [
-      user.name,
-      user.id,
-    ]);
-
-  console.log(result);
-  return null;
-}
-
-/**
- * Select user list.
- */
-async function userList(user: TUpdateUserReq): Promise<number | null> {
-  const [result] = await mysql
-    .pool()
-    .execute("UPDATE `ck_test` SET `uri` = ? WHERE `id` = ? ", [
-      user.name,
-      user.id,
-    ]);
-
-  console.log(result);
-  return null;
+  return result.insertId;
 }
 
 /**
  * Select user detail.
  */
-async function userDetail(eamil: string): Promise<IUser> {
-  const [result] = await mysql
-    .pool()
-    .execute<IUser[]>("SELECT delete_flag FROM `ck_test` WHERE `email` = ? ", [
-      eamil,
-    ]);
+/*  */
+async function userDetail(
+  data: TSelectUserById | TSelectUserByEmail | TSelectUserByNameEmail,
+  col = "*"
+): Promise<TUser | null> {
+  let sql = "";
+  let values: any | any[];
+
+  switch (data.case) {
+    case eSELECT_USER.BY_ID:
+      sql = `SELECT ${col} FROM ck_test WHERE id = ? `;
+      values = [data.id];
+      break;
+
+    case eSELECT_USER.BY_EMAIL:
+      sql = `SELECT ${col} FROM ck_test WHERE email = ? `;
+      values = [data.email];
+      break;
+
+    case eSELECT_USER.BY_NAME_EMAIL:
+      sql = `SELECT ${col} FROM ck_test WHERE name = ? AND email = ?`;
+      values = [data.name, data.email];
+      break;
+
+    default:
+      return null;
+  }
+
+  const [result] = await mysql.pool().execute<TUser[]>(sql, values);
 
   return result[0];
 }
@@ -84,8 +65,5 @@ async function userDetail(eamil: string): Promise<IUser> {
 
 export default {
   createUser,
-  updateUser,
-  deleteUser,
-  userList,
   userDetail,
 } as const;

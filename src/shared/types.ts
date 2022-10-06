@@ -33,6 +33,16 @@ export enum UserRoles {
   Admin,
 }
 
+// **** ENTITIY **** //
+
+export type TUser = {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  role: UserRoles;
+} & RowDataPacket;
+
 // **** DTO **** //
 
 export type TCoreRes = {
@@ -41,17 +51,24 @@ export type TCoreRes = {
   message?: string;
 };
 
-export interface IUser extends RowDataPacket {
-  id: number;
-  name: string;
-  email: string;
-  password: string;
-  role: UserRoles;
-}
-
-export type TCreateUserReq = Pick<IUser, "name" | "email" | "password">;
+export type TCreateUserReq = Pick<TUser, "name" | "email" | "password">;
 export type TCreateUserRes = TCoreRes & { id?: number };
 
 export type TUpdateUserReq = Partial<
-  Pick<IUser, "id" | "name" | "email" | "password">
+  Pick<TUser, "id" | "name" | "email" | "password">
 >;
+
+export enum eSELECT_USER {
+  BY_ID,
+  BY_EMAIL,
+  BY_NAME_EMAIL,
+}
+export type TSelectUserById = Pick<TUser, "id"> & {
+  case: eSELECT_USER.BY_ID;
+};
+export type TSelectUserByEmail = Pick<TUser, "email"> & {
+  case: eSELECT_USER.BY_EMAIL;
+};
+export type TSelectUserByNameEmail = Pick<TUser, "name" | "email"> & {
+  case: eSELECT_USER.BY_NAME_EMAIL;
+};
