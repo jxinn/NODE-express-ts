@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 
 import jwtUtil from "@util/jwt-util";
 import userModel from "@models/user-model";
-import { eSELECT_USER, TCreateUserReq, TUser } from "@shared/types";
+import { eSELECT_USER, TCreateUserReq, TLoginReq } from "@shared/types";
 import { CustomError } from "@shared/errors";
 import { StatusCodes } from "http-status-codes";
 
@@ -11,17 +11,17 @@ import { StatusCodes } from "http-status-codes";
 /**
  * Create user.
  */
-async function createUser(userReq: TCreateUserReq): Promise<number | null> {
+async function createUser(userReq: TCreateUserReq): Promise<number> {
   try {
     userReq.password = await bcrypt.hash(userReq.password, 10);
   } catch (error) {
-    throw new CustomError(StatusCodes.BAD_REQUEST, "TP_1002");
+    throw new CustomError(StatusCodes.INTERNAL_SERVER_ERROR, "TP_1002");
   }
 
   const userId = await userModel.createUser(userReq);
 
   if (!userId) {
-    throw new CustomError(StatusCodes.BAD_REQUEST, "TP_1001");
+    throw new CustomError(StatusCodes.INTERNAL_SERVER_ERROR, "TP_1001");
   }
 
   return userId;
@@ -41,33 +41,33 @@ async function checkEmail(email: string): Promise<boolean> {
 
 /**
  * Login a user.
+ */
+async function login(loginReq: TLoginReq): Promise<string> {
+  const { email, password } = loginReq;
+  const user = await userModel.userDetail({
+    case: eSELECT_USER.BY_EMAIL,
+    email,
+  });
 
-
-async function getJwt(email: string, password: string): Promise<string> {
-  // Fetch user
-  const user = await userRepo.getOne(email);
   if (!user) {
-    throw new UnauthorizedError();
+    throw new CustomError(StatusCodes.INTERNAL_SERVER_ERROR, "TP_1004");
   }
-  // Check password
+
   const hash = user.password ?? "";
   const pwdPassed = await bcrypt.compare(password, hash);
   if (!pwdPassed) {
-    throw new UnauthorizedError();
+    throw new CustomError(StatusCodes.INTERNAL_SERVER_ERROR, "TP_1004");
   }
-  // Setup Admin Cookie
+
   return jwtUtil.sign({
     id: user.id,
-    email: user.name,
-    name: user.name,
-    role: user.role,
   });
 }
- */
 
 // **** Export default **** //
 
 export default {
   createUser,
   checkEmail,
+  login,
 } as const;

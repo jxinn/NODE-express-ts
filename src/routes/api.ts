@@ -12,24 +12,13 @@ const apiRouter = Router();
 // **** Setup auth routes **** //
 
 const authRouter = Router();
-
-// Create user
 authRouter.post(authRoutes.paths.create, authRoutes.createUser);
+authRouter.post(authRoutes.paths.login, authRoutes.login);
 
 // Add authRouter
 apiRouter.use(authRoutes.paths.basePath, authRouter);
 
 /* 
-// Login user
-authRouter.post(
-  authRoutes.paths.login,
-  validate("email", "password"),
-  authRoutes.login
-);
-
-// Logout user
-authRouter.get(authRoutes.paths.logout, authRoutes.logout);
-
 
 // **** Setup user routes **** //
 

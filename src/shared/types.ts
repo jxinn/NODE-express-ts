@@ -1,5 +1,5 @@
 import * as e from "express";
-import { Query } from "express-serve-static-core";
+import { Query, Send } from "express-serve-static-core";
 
 import { ISessionUser } from "@routes/middleware";
 import { TCodes } from "./errors";
@@ -20,10 +20,8 @@ export interface IReqQuery<T extends Query, U = void> extends e.Request {
   body: U;
 }
 
-export interface IRes extends e.Response {
-  locals: {
-    sessionUser: ISessionUser;
-  };
+export interface IRes<T = void> extends e.Response {
+  json: Send<T, this>;
 }
 
 // **** ETC **** //
@@ -53,6 +51,9 @@ export type TCoreRes = {
 
 export type TCreateUserReq = Pick<TUser, "name" | "email" | "password">;
 export type TCreateUserRes = TCoreRes & { id?: number };
+
+export type TLoginReq = Pick<TUser, "email" | "password">;
+export type TLoginRes = TCoreRes & { token?: string };
 
 export type TUpdateUserReq = Partial<
   Pick<TUser, "id" | "name" | "email" | "password">

@@ -15,7 +15,7 @@ import { ResultSetHeader } from "mysql2/promise";
  * Create user.
  */
 async function createUser(user: TCreateUserReq): Promise<number> {
-  const [result] = await mysql.pool().execute<ResultSetHeader>(
+  const [result] = await mysql.pool().query<ResultSetHeader>(
     `INSERT INTO ck_test (name, email, password) VALUES 
     (:name, :email, :password)`,
     user
@@ -51,7 +51,7 @@ async function userDetail(
       return null;
   }
 
-  const [result] = await mysql.pool().execute<TUser[]>(sql, data);
+  const [result] = await mysql.pool().query<TUser[]>(sql, data);
 
   return result[0];
 }

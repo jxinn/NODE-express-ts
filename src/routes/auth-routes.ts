@@ -1,9 +1,14 @@
 import StatusCodes from "http-status-codes";
-
 import authService from "@services/auth-service";
-import envVars from "src/shared/env-vars";
-import { TCreateUserReq, IReq, IRes, TCreateUserRes } from "@shared/types";
-import { validationResult, body, CustomValidator } from "express-validator";
+import {
+  TCreateUserReq,
+  IReq,
+  IRes,
+  TCreateUserRes,
+  TLoginReq,
+  TLoginRes,
+} from "@shared/types";
+import { validationResult, body } from "express-validator";
 import { CODES, CustomError } from "@shared/errors";
 
 // **** Variables **** //
@@ -21,7 +26,10 @@ const paths = {
 /**
  * Create an account.
  */
-async function createUser(req: IReq<TCreateUserReq>, res: IRes) {
+async function createUser(
+  req: IReq<TCreateUserReq>,
+  res: IRes<TCreateUserRes>
+) {
   await body("name")
     .isLength({ min: 3 })
     .withMessage("이름은 최소 3글자 이상 입력해 주세요")
@@ -33,7 +41,7 @@ async function createUser(req: IReq<TCreateUserReq>, res: IRes) {
       const exists = await authService.checkEmail(value);
       if (exists) return Promise.reject();
     })
-    .withMessage("이미 존재하는 이메일입니다.")
+    .withMessage("이미 존재하는 이메일입니다")
     .run(req);
   await body("password")
     .matches(
@@ -57,30 +65,35 @@ async function createUser(req: IReq<TCreateUserReq>, res: IRes) {
     code: "TP_0000",
     message: CODES.TP_0000,
     id: userId,
-  } as TCreateUserRes);
+  });
 }
 
 /**
  * Login a user.
- 
-async function login(req: IReq<ILoginReq>, res: IRes) {
-  const { email, password } = req.body;
-  // Add jwt to cookie
-  const jwt = await authService.getJwt(email, password);
-  const { key, options } = envVars.cookieProps;
-  res.cookie(key, jwt, options);
-  // Return
-  return res.status(OK).end();
-}
-*/
-
-/**
- * Logout the user.
  */
-function logout(_: IReq, res: IRes) {
-  const { key, options } = envVars.cookieProps;
-  res.clearCookie(key, options);
-  return res.status(StatusCodes.OK).end();
+async function login(req: IReq<TLoginReq>, res: IRes<TLoginRes>) {
+  await body("email")
+    .exists({ checkFalsy: true })
+    .withMessage("이메일을 입력해 주세요")
+    .run(req);
+  await body("password")
+    .exists({ checkFalsy: true })
+    .withMessage("비밀번호를 입력해 주세요")
+    .run(req);
+
+  const validation = validationResult(req);
+  if (!validation.isEmpty()) {
+    const [error] = validation.array({ onlyFirstError: false });
+    throw new CustomError(StatusCodes.BAD_REQUEST, "TP_1000", error);
+  }
+
+  const token = await authService.login(req.body);
+
+  return res.status(StatusCodes.OK).json({
+    result: true,
+    code: "TP_0000",
+    token,
+  });
 }
 
 // **** Export default **** //
@@ -88,5 +101,5 @@ function logout(_: IReq, res: IRes) {
 export default {
   paths,
   createUser,
-  logout,
+  login,
 } as const;

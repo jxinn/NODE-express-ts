@@ -11,6 +11,7 @@ import BaseRouter from "./routes/api";
 import logger from "jet-logger";
 import { CODES, CustomError } from "@shared/errors";
 import envVars from "@shared/env-vars";
+import { TCoreRes } from "@shared/types";
 
 // **** Init express **** //
 
@@ -61,7 +62,7 @@ app.use(
         result: false,
         code: "TP_9999",
         message: CODES.TP_9999,
-      });
+      } as TCoreRes);
     }
   }
 );
