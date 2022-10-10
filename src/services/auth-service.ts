@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt";
-
 import jwtUtil from "@util/jwt-util";
 import userModel from "@models/user-model";
 import { eSELECT_USER, TCreateUserReq, TLoginReq } from "@shared/types";

@@ -36,11 +36,11 @@ async function userDetail(
 
   switch (data.case) {
     case eSELECT_USER.BY_ID:
-      sql = `SELECT ${col} FROM ck_test WHERE id = :id `;
+      sql = `SELECT ${col} FROM ck_test WHERE id = :id`;
       break;
 
     case eSELECT_USER.BY_EMAIL:
-      sql = `SELECT ${col} FROM ck_test WHERE email = :email `;
+      sql = `SELECT ${col} FROM ck_test WHERE email = :email`;
       break;
 
     case eSELECT_USER.BY_NAME_EMAIL:
