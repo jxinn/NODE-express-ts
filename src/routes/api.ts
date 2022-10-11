@@ -1,6 +1,5 @@
 import { Router } from "express";
 
-import { adminMw, validate } from "./middleware";
 import User from "@models/user-model";
 import authRoutes from "./auth-routes";
 import userRoutes from "./user-routes";

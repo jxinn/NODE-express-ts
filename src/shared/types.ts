@@ -1,9 +1,9 @@
 import * as e from "express";
 import { Query, Send } from "express-serve-static-core";
 
-import { ISessionUser } from "@routes/middleware";
 import { TCodes } from "./errors";
 import { RowDataPacket } from "mysql2/promise";
+import { JwtPayload } from "jsonwebtoken";
 
 // **** Misc **** //
 
@@ -25,6 +25,10 @@ export interface IRes<T = void> extends e.Response {
 }
 
 // **** ETC **** //
+
+export type TPayload = {
+  id: number;
+} & JwtPayload;
 
 export enum UserRoles {
   Standard,

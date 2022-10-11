@@ -1,13 +1,8 @@
 import StatusCodes from "http-status-codes";
 
 //import userService from '@services/user-service';
-import { IUser } from "@models/user-model";
-import { IReq, IRes } from "@shared/types";
-
-// **** Variables **** //
-
-// Misc
-const { CREATED, OK } = StatusCodes;
+import { IReq, IRes, TCoreRes } from "@shared/types";
+import { CODES } from "@shared/errors";
 
 // Paths
 const paths = {
@@ -23,44 +18,53 @@ const paths = {
 /**
  * Get all users.
  */
-async function getAll(_: IReq, res: IRes) {
-  const users = await userService.getAll();
-  return res.status(OK).json({ users });
+function getUserList(req: IReq, res: IRes<TCoreRes>) {
+  return res.status(StatusCodes.CREATED).json({
+    result: true,
+    code: "TP_0000",
+    message: CODES.TP_0000,
+  });
 }
 
 /**
- * Add one user.
+ * Get one user.
  */
-async function add(req: IReq<{ user: IUser }>, res: IRes) {
-  const { user } = req.body;
-  await userService.addOne(user);
-  return res.status(CREATED).end();
+function getUserDetail(req: IReq, res: IRes<TCoreRes>) {
+  return res.status(StatusCodes.CREATED).json({
+    result: true,
+    code: "TP_0000",
+    message: CODES.TP_0000,
+  });
 }
 
 /**
  * Update one user.
  */
-async function update(req: IReq<{ user: IUser }>, res: IRes) {
-  const { user } = req.body;
-  await userService.updateOne(user);
-  return res.status(OK).end();
+function editUser(req: IReq, res: IRes<TCoreRes>) {
+  return res.status(StatusCodes.CREATED).json({
+    result: true,
+    code: "TP_0000",
+    message: CODES.TP_0000,
+  });
 }
 
 /**
  * Delete one user.
  */
-async function _delete(req: IReq, res: IRes) {
-  const id = +req.params.id;
-  await userService.delete(id);
-  return res.status(OK).end();
+function deleteUser(req: IReq, res: IRes<TCoreRes>) {
+  return res.status(StatusCodes.CREATED).json({
+    result: true,
+    code: "TP_0000",
+    message: CODES.TP_0000,
+  });
 }
 
 // **** Export default **** //
 
 export default {
   paths,
-  getAll,
-  add,
-  update,
-  delete: _delete,
+  getUserList,
+  getUserDetail,
+  editUser,
+  deleteUser,
 } as const;

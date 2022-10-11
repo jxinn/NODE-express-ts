@@ -1,49 +1,38 @@
-import { IUser } from "@models/user-model";
-import { UserNotFoundError } from "@shared/errors";
+import userModel from "@models/user-model";
+import { CustomError } from "@shared/errors";
+import { eSELECT_USER, TUser } from "@shared/types";
+import { StatusCodes } from "http-status-codes";
 
 // **** Functions **** //
 
 /**
  * Get all users.
  */
-function getAll(): Promise<IUser[]> {
-  return userRepo.getAll();
+async function getUserDetail(id: number): Promise<TUser> {
+  const user = await userModel.userDetail({
+    case: eSELECT_USER.BY_ID,
+    id,
+  });
+
+  if (!user) {
+    throw new CustomError(StatusCodes.INTERNAL_SERVER_ERROR, "TP_1007");
+  }
+
+  return user;
 }
 
 /**
  * Add one user.
  */
-function addOne(user: IUser): Promise<void> {
-  return userRepo.add(user);
-}
 
 /**
  * Update one user.
  */
-async function updateOne(user: IUser): Promise<void> {
-  const persists = await userRepo.persists(user.id);
-  if (!persists) {
-    throw new UserNotFoundError();
-  }
-  return userRepo.update(user);
-}
 
 /**
  * Delete a user by their id.
  */
-async function _delete(id: number): Promise<void> {
-  const persists = await userRepo.persists(id);
-  if (!persists) {
-    throw new UserNotFoundError();
-  }
-  return userRepo.delete(id);
-}
 
 // **** Export default **** //
 
-export default {
-  getAll,
-  addOne,
-  updateOne,
-  delete: _delete,
-} as const;
+export default { getUserDetail } as const;
