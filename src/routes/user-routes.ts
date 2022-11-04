@@ -1,19 +1,65 @@
 import StatusCodes from "http-status-codes";
-
-//import userService from '@services/user-service';
-import { IReq, IRes, TCoreRes } from "@shared/types";
+import {
+  IReq,
+  IRes,
+  TaddUserReq,
+  TCoreRes,
+  TRemoveUserReq,
+} from "@shared/types";
 import { CODES } from "@shared/errors";
+import userService from "@services/user-service";
+import { body } from "express-validator";
+import helper from "@shared/functions";
 
 // Paths
 const paths = {
   basePath: "/users",
-  get: "/all",
   add: "/add",
-  update: "/update",
-  delete: "/delete/:id",
+  remove: "/remove",
+  modify: "/modify",
+  user: "user",
+  list: "/list",
 } as const;
 
 // **** Functions **** //
+/**
+ * Add one user.
+ */
+async function addUser(req: IReq<TaddUserReq>, res: IRes<TCoreRes>) {
+  await body("email").exists({ checkFalsy: true }).run(req);
+  await body("password").exists({ checkFalsy: true }).run(req);
+  await body("name")
+    .exists({ checkFalsy: true })
+    .withMessage("Create Custom Message !")
+    .run(req);
+  helper.validationHandling(req);
+
+  await userService.addUser(req.body);
+
+  return res.status(StatusCodes.CREATED).json({
+    result: true,
+    code: "TP_0000",
+    message: CODES.TP_0000,
+  });
+}
+
+/**
+ * Remove one user.
+ */
+async function removeUser(req: IReq<TRemoveUserReq>, res: IRes<TCoreRes>) {
+  await body("id").exists({ checkFalsy: true }).run(req);
+  helper.validationHandling(req);
+
+  console.log(res.locals);
+
+  //await userService.removeUser(req.body);
+
+  return res.status(StatusCodes.CREATED).json({
+    result: true,
+    code: "TP_0000",
+    message: CODES.TP_0000,
+  });
+}
 
 /**
  * Get all users.
@@ -48,23 +94,13 @@ function editUser(req: IReq, res: IRes<TCoreRes>) {
   });
 }
 
-/**
- * Delete one user.
- */
-function deleteUser(req: IReq, res: IRes<TCoreRes>) {
-  return res.status(StatusCodes.CREATED).json({
-    result: true,
-    code: "TP_0000",
-    message: CODES.TP_0000,
-  });
-}
-
 // **** Export default **** //
 
 export default {
   paths,
+  addUser,
+  removeUser,
   getUserList,
   getUserDetail,
   editUser,
-  deleteUser,
 } as const;

@@ -1,16 +1,13 @@
 import * as e from "express";
 import { Query, Send } from "express-serve-static-core";
-
 import { TCodes } from "./errors";
-import { RowDataPacket } from "mysql2/promise";
 import { JwtPayload } from "jsonwebtoken";
+import { TUser } from "@models/user-model";
 
 // **** Misc **** //
-
 export type TAll = string | number | boolean | null | object;
 
 // **** Express **** //
-
 export interface IReq<T = void> extends e.Request {
   body: T;
 }
@@ -21,11 +18,13 @@ export interface IReqQuery<T extends Query, U = void> extends e.Request {
 }
 
 export interface IRes<T = void> extends e.Response {
+  locals: {
+    user: TUser;
+  };
   json: Send<T, this>;
 }
 
 // **** ETC **** //
-
 export type TPayload = {
   id: number;
 } & JwtPayload;
@@ -35,45 +34,30 @@ export enum UserRoles {
   Admin,
 }
 
-// **** ENTITIY **** //
-
-export type TUser = {
-  id: number;
-  name: string;
-  email: string;
-  password: string;
-  role: UserRoles;
-} & RowDataPacket;
-
 // **** DTO **** //
-
 export type TCoreRes = {
   result: boolean;
   code: TCodes;
   message?: string;
 };
 
-export type TCreateUserReq = Pick<TUser, "name" | "email" | "password">;
-export type TCreateUserRes = TCoreRes & { id?: number };
-
-export type TLoginReq = Pick<TUser, "email" | "password">;
+// **** Login **** //
+export type TLoginReq = {
+  email: string;
+  password: string;
+  recaptcha: string;
+};
 export type TLoginRes = TCoreRes & { token?: string };
 
-export type TUpdateUserReq = Partial<
-  Pick<TUser, "id" | "name" | "email" | "password">
->;
+// **** User **** //
+export type TaddUserReq = {
+  email: string;
+  password: string;
+  name: string;
+};
+export type TaddUserRes = TCoreRes;
 
-export enum eSELECT_USER {
-  BY_ID,
-  BY_EMAIL,
-  BY_NAME_EMAIL,
-}
-export type TSelectUserById = Pick<TUser, "id"> & {
-  case: eSELECT_USER.BY_ID;
+export type TRemoveUserReq = {
+  id: number;
 };
-export type TSelectUserByEmail = Pick<TUser, "email"> & {
-  case: eSELECT_USER.BY_EMAIL;
-};
-export type TSelectUserByNameEmail = Pick<TUser, "name" | "email"> & {
-  case: eSELECT_USER.BY_NAME_EMAIL;
-};
+export type TRemoveUserRes = TCoreRes;

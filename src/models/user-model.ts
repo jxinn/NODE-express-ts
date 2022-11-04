@@ -1,57 +1,95 @@
-import {
-  eSELECT_USER,
-  TCreateUserReq,
-  TSelectUserByEmail,
-  TSelectUserById,
-  TSelectUserByNameEmail,
-  TUser,
-} from "@shared/types";
 import mysql from "@models/mysql";
-import { ResultSetHeader } from "mysql2/promise";
+import { ResultSetHeader, RowDataPacket } from "mysql2/promise";
+
+// **** Types **** //
+export type TUser = {
+  id: number;
+  email: string;
+  password: string;
+  name: string;
+  created_date: Date;
+  updated_date: Date;
+} & RowDataPacket;
+
+export type TaddUserParams = {
+  email: string;
+  password: string;
+  name: string;
+};
 
 // **** Functions **** //
-
 /**
- * Create user.
+ * Add one user.
  */
-async function createUser(user: TCreateUserReq): Promise<number> {
+async function insertUser(params: TaddUserParams): Promise<number> {
   const [result] = await mysql.pool().query<ResultSetHeader>(
-    `INSERT INTO ck_test (name, email, password) VALUES 
-    (:name, :email, :password)`,
-    user
+    `INSERT INTO user (email, password, name) VALUES 
+    (:email, :password, :name)`,
+    params
   );
 
   return result.insertId;
 }
 
 /**
- * Select user detail.
+ * Remove one user.
  */
-/*  */
-async function userDetail(
-  data: TSelectUserById | TSelectUserByEmail | TSelectUserByNameEmail,
-  col = "*"
-): Promise<TUser | null> {
-  let sql = "";
+async function deleteUser(id: number): Promise<boolean> {
+  const [result] = await mysql
+    .pool()
+    .query<ResultSetHeader>(`DELETE FROM user WHERE id = :id`, { id });
 
-  switch (data.case) {
-    case eSELECT_USER.BY_ID:
-      sql = `SELECT ${col} FROM ck_test WHERE id = :id`;
-      break;
+  console.log(result, "👿👿👿");
+  return Boolean(result.changedRows);
+}
 
-    case eSELECT_USER.BY_EMAIL:
-      sql = `SELECT ${col} FROM ck_test WHERE email = :email`;
-      break;
+/**
+ * Modify user name.
+ */
+async function updateUserName(id: number, name: string): Promise<boolean> {
+  const [result] = await mysql
+    .pool()
+    .query<ResultSetHeader>(`UPDATE user SET name = :name WHERE id = :id`, {
+      name,
+      id,
+    });
 
-    case eSELECT_USER.BY_NAME_EMAIL:
-      sql = `SELECT ${col} FROM ck_test WHERE name = :name AND email = :email`;
-      break;
+  return Boolean(result.changedRows);
+}
 
-    default:
-      return null;
-  }
+/**
+ * Get user list.
+ */
+async function selectUserList(columns?: (keyof TUser)[]): Promise<TUser[]> {
+  const cols = columns === undefined ? "*" : columns.join(",");
 
-  const [result] = await mysql.pool().query<TUser[]>(sql, data);
+  const [result] = await mysql
+    .pool()
+    .query<TUser[]>(`SELECT ${cols} FROM user WHERE (1) ORDER BY id DESC`);
+
+  return result;
+}
+
+/**
+ * Get one user by id.
+ */
+async function selectUserById(id: number): Promise<TUser> {
+  const sql = `SELECT * FROM user WHERE id = :id`;
+  const [result] = await mysql.pool().query<TUser[]>(sql, {
+    id,
+  });
+
+  return result[0];
+}
+
+/**
+ * Get one user by email.
+ */
+async function selectUserByEmail(email: string): Promise<TUser> {
+  const sql = `SELECT * FROM user WHERE email = :email`;
+  const [result] = await mysql.pool().query<TUser[]>(sql, {
+    email,
+  });
 
   return result[0];
 }
@@ -59,6 +97,10 @@ async function userDetail(
 // **** Export default **** //
 
 export default {
-  createUser,
-  userDetail,
+  insertUser,
+  deleteUser,
+  updateUserName,
+  selectUserList,
+  selectUserById,
+  selectUserByEmail,
 } as const;

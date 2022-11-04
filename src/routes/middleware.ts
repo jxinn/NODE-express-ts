@@ -16,7 +16,7 @@ export async function authMw(req: Request, res: Response, next: NextFunction) {
 
   const decoded = await jwtUtil.decode<TPayload>(token.toString());
   if (typeof decoded === "object" && decoded.id) {
-    const user = userService.getUserDetail(decoded.id);
+    const user = userService.getUserById(decoded.id);
     res.locals.sessionUser = user;
     next();
   } else {

@@ -1,17 +1,15 @@
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
-import path from "path";
 import helmet from "helmet";
 import StatusCodes from "http-status-codes";
 import express, { Request, Response, NextFunction } from "express";
-
 import "express-async-errors";
-
 import BaseRouter from "./routes/api";
 import logger from "jet-logger";
 import { CODES, CustomError } from "@shared/errors";
 import envVars from "@shared/env-vars";
 import { TCoreRes } from "@shared/types";
+import requestIp from "request-ip";
 
 // **** Init express **** //
 
@@ -33,13 +31,14 @@ if (envVars.nodeEnv === "production") {
   app.use(helmet());
 }
 
-// **** Add API routes **** //
+// IP
+app.use(requestIp.mw());
 
+// **** Add API routes **** //
 // Add APIs
 app.use("/api", BaseRouter);
 
 // Setup error handler
-
 app.use(
   (
     err: Error | CustomError,
@@ -68,5 +67,4 @@ app.use(
 );
 
 // **** Export default **** //
-
 export default app;

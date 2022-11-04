@@ -25,4 +25,8 @@ export default {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
   },
+  recaptcha: {
+    url: "",
+    privateKey: process.env.RECAPTCHA_PRIVATE_KEY,
+  },
 } as const;
